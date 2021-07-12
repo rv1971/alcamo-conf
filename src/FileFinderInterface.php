@@ -3,6 +3,12 @@
 namespace alcamo\conf;
 
 /**
+ * @namespace alcamo::conf
+ *
+ * @brief Simple reading of conf files from XDG base directories
+ */
+
+/**
  * @brief Object implementing a find() method to find a file by its name
  *
  * @date Last reviewed 2021-06-15
