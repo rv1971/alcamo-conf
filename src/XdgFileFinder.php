@@ -12,7 +12,6 @@ use alcamo\exception\InvalidEnumerator;
  *
  * @date Last reviewed 2021-06-15
  */
-
 class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
 {
     /// Default subdirectory within `$XDG_CONFIG_HOME` or `$XDG_DATA_HOME`
@@ -71,7 +70,7 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
     /**
      * @brief Return colon-separated list of result of getDirs()
      */
-    public function __toString()
+    public function __toString(): string
     {
         return implode(':', $this->dirs_);
     }

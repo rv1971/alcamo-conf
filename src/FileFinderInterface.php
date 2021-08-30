@@ -19,5 +19,5 @@ interface FileFinderInterface
     public function find(string $filename): ?string;
 
     /// Serialize this object, mainly for debugging
-    public function __toString();
+    public function __toString(): string;
 }
