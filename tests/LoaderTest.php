@@ -35,7 +35,7 @@ class LoaderTest extends TestCase
 
         $this->expectException(FileNotFound::class);
         $this->expectExceptionMessage(
-            "File \"foo.ini\" not found in \"$configHome:" . __DIR__ . '"'
+            "File \"foo.ini\" not found in \"$configHome:"
         );
 
         putenv("XDG_CONFIG_HOME=$configHome");

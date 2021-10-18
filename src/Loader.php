@@ -61,9 +61,14 @@ class Loader implements LoaderInterface
             $pathname = $this->fileFinder_->find($filename);
 
             if (!isset($pathname)) {
-                /** @throw alcamo::exception::FileNotFound inf the file finder
+                /** @throw alcamo::exception::FileNotFound if the file finder
                  *  cannot find a file. */
-                throw new FileNotFound($filename, (string)$this->fileFinder_);
+                throw (new FileNotFound())->setMessageContext(
+                    [
+                        'filename' => $filename,
+                        'inPlaces' => (string)$this->fileFinder_
+                        ]
+                );
             }
 
             $result = $this->fileParser_->parse($pathname) + $result;

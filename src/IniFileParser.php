@@ -24,7 +24,8 @@ class IniFileParser implements FileParserInterface
             return parse_ini_file($filename, false, INI_SCANNER_TYPED);
         } catch (\Throwable $e) {
             /** @throw alcamo::exception::FileNotFound if parser fails. */
-            throw new FileNotFound($filename);
+            throw (new FileNotFound())
+                ->setMessageContext([ 'filename' => $filename ]);
         }
     }
 }

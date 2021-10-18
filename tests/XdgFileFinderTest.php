@@ -67,7 +67,7 @@ class XdgFileFinderTest extends TestCase
     {
         $this->expectException(InvalidEnumerator::class);
         $this->expectExceptionMessage(
-            'Invalid value "FOO", expected one of: "CONFIG", "DATA"'
+            'Invalid value "FOO", expected one of ["CONFIG", "DATA"]'
         );
 
         new XdgFileFinder(null, 'FOO');

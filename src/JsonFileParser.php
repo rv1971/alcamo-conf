@@ -19,7 +19,8 @@ class JsonFileParser implements FileParserInterface
         } catch (\Throwable $e) {
             /** @throw alcamo::exception::FileNotFound if file cannot be
              *  loaded from storage. */
-            throw new FileNotFound($filename);
+            throw (new FileNotFound())
+                ->setMessageContext([ 'filename' => $filename ]);
         }
 
         return json_decode($contents, true);

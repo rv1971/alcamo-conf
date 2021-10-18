@@ -39,10 +39,14 @@ class FileParser implements FileParserInterface
         /** @throw alcamo::exception::InvalidEnumerator if the file extension
          *  is not known. */
         throw new InvalidEnumerator(
-            $extension,
-            $extensions,
-            "Invalid file extension in '$filename', expected one of: '"
-            . implode("', '", $extensions) . "'"
+            'Invalid file extension',
+            0,
+            null,
+            [
+                'value' => $extension,
+                'expectedOneOf' => $extensions,
+                'atUri' => $filename
+            ]
         );
     }
 }

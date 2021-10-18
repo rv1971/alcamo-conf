@@ -45,7 +45,12 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
             default:
                 /** @throw alcamo::exception::InvalidEnumerator if `$type` is
                  *  invalid. */
-                throw new InvalidEnumerator($type, [ 'CONFIG', 'DATA' ]);
+                throw (new InvalidEnumerator())->setMessageContext(
+                    [
+                        'value' => $type,
+                        'expectedOneOf' => [ 'CONFIG', 'DATA' ]
+                    ]
+                );
         }
     }
 

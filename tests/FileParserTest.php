@@ -52,7 +52,7 @@ class FileParserTest extends TestCase
 
         $this->expectException(InvalidEnumerator::class);
         $this->expectExceptionMessage(
-            "Invalid file extension in '$txtFileName', expected one of: 'ini', 'json'"
+            'Invalid file extension, expected one of ["ini", "json"] at URI '
         );
 
         $parser = new FileParser();
