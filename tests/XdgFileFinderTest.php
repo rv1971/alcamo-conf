@@ -7,15 +7,15 @@ use alcamo\exception\InvalidEnumerator;
 
 class XdgFileFinderTest extends TestCase
 {
-  /**
-   * @dataProvider basicsProvider
-   */
+    /**
+     * @dataProvider basicsProvider
+     */
     public function testBasics(
         $subdir,
         $type,
         $filename,
         $expectedPathname
-    ) {
+    ): void {
         $finder = new XdgFileFinder($subdir, $type);
 
         $this->assertSame($subdir ?? 'alcamo', $finder->getSubdir());
@@ -63,7 +63,34 @@ class XdgFileFinderTest extends TestCase
         ];
     }
 
-    public function testException()
+    public function testState(): void
+    {
+        $stateHome = __DIR__;
+        $subdir = 'foo';
+        $stateDir = $stateHome . DIRECTORY_SEPARATOR . $subdir;
+        $filename = 'bar.json';
+
+        if (is_dir($stateDir)) {
+            rmdir($stateDir);
+        }
+
+        putenv("XDG_STATE_HOME=$stateHome");
+
+        $finder = new XdgFileFinder($subdir, 'STATE');
+
+        $pathname = $finder->find($filename);
+
+        $this->assertSame(
+            $stateDir . DIRECTORY_SEPARATOR . $filename,
+            $pathname
+        );
+
+        $this->assertTrue(is_dir($stateDir));
+
+        rmdir($stateDir);
+    }
+
+    public function testException(): void
     {
         $this->expectException(InvalidEnumerator::class);
         $this->expectExceptionMessage(
