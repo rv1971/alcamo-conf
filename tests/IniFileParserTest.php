@@ -5,11 +5,33 @@ namespace alcamo\conf;
 use PHPUnit\Framework\TestCase;
 use alcamo\exception\FileNotFound;
 
-/** Positive test cases are done in FileParserTest.php: */
-
+/** More positive test cases are done in FileParserTest.php: */
 class IniFileParserTest extends TestCase
 {
-    public function testNotFound()
+    public function testSections(): void
+    {
+        $parser = new IniFileParser(true);
+
+        $iniFilename = __DIR__ . DIRECTORY_SEPARATOR .
+        'alcamo' . DIRECTORY_SEPARATOR . 'bar.ini';
+
+        $iniData = $parser->parse($iniFilename);
+
+        $this->assertSame(
+            [
+                'Foo' => [
+                    'quux' => 45,
+                    'corge' => 'foo bar baz'
+                ],
+                'Bar' => [
+                    'bar' => 46
+                ]
+            ],
+            $iniData
+        );
+    }
+
+    public function testNotFound(): void
     {
         $fileName = __DIR__ . DIRECTORY_SEPARATOR . 'none.ini';
 
