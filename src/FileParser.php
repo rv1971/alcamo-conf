@@ -6,35 +6,24 @@ use alcamo\exception\InvalidEnumerator;
 
 /**
  * @brief Parser for INI or JSON files
- *
- * @date Last reviewed 2021-06-15
  */
 class FileParser implements FileParserInterface
 {
-    private $ext2parser_; // Map of filename extensions to parser objects
+    public const EXT_TO_PARSER_CLASS = [
+        'ini'  => IniFileParser::class,
+        'json' => JsonFileParser::class
+    ];
 
-    public function __construct()
-    {
-        $this->ext2parser_ = [
-            'ini' => new IniFileParser(),
-            'json' => new JsonFileParser()
-        ];
-    }
-
-    /**
-     * @copybrief FileParserInterface::parse()
-     *
-     * Use a parser object depending on the file suffix.
-     */
-    public function parse(string $filename): array
+    public function createParser(string $filename): FileParserInterface
     {
         $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-        if (isset($this->ext2parser_[$extension])) {
-            return $this->ext2parser_[$extension]->parse($filename);
+        if (isset(static::EXT_TO_PARSER_CLASS[$extension])) {
+            $class = static::EXT_TO_PARSER_CLASS[$extension];
+            return new $class();
         }
 
-        $extensions = array_keys($this->ext2parser_);
+        $extensions = array_keys(static::EXT_TO_PARSER_CLASS);
 
         /** @throw alcamo::exception::InvalidEnumerator if the file extension
          *  is not known. */
@@ -48,5 +37,15 @@ class FileParser implements FileParserInterface
                 'atUri' => $filename
             ]
         );
+    }
+
+    /**
+     * @copybrief FileParserInterface::parse()
+     *
+     * Use a parser object depending on the file suffix.
+     */
+    public function parse(string $filename): array
+    {
+        return $this->createParser($filename)->parse($filename);
     }
 }
