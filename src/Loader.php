@@ -6,39 +6,37 @@ use alcamo\exception\FileNotFound;
 
 /**
  * @brief Configuration file loader based on a file finder and a file parser
- *
- * @date Last reviewed 2021-06-15
  */
 class Loader implements LoaderInterface
 {
-    private $fileFinder_; ///< FileFinderInterface
     private $fileParser_; ///< FileParserInterface
+    private $fileFinder_; ///< FileFinderInterface
 
     /**
-     * @param $fileFinder @copybrief getFileFinder(), defaults to a new
-     * XdgFileFinder instance.
-     *
      * @param $fileParser @copybrief getFileParser(), defaults to a new
      * FileParser instance.
+     *
+     * @param $fileFinder @copybrief getFileFinder(), defaults to a new
+     * XdgFileFinder instance.
      */
     public function __construct(
-        ?FileFinderInterface $fileFinder = null,
-        ?FileParserInterface $fileParser = null
+        ?FileParserInterface $fileParser = null,
+        ?FileFinderInterface $fileFinder = null
     ) {
-        $this->fileFinder_ = $fileFinder ?? new XdgFileFinder();
         $this->fileParser_ = $fileParser ?? new FileParser();
-    }
-
-    /// Object used to find a configuration file
-    public function getFileFinder(): FileFinderInterface
-    {
-        return $this->fileFinder_;
+        $this->fileFinder_ = $fileFinder ?? new XdgFileFinder();
     }
 
     /// Object used to parse a configuration file
     public function getFileParser(): FileParserInterface
     {
         return $this->fileParser_;
+    }
+
+    /// Object used to find a configuration file
+    public function getFileFinder(): FileFinderInterface
+    {
+        return $this->fileFinder_;
     }
 
     /**
