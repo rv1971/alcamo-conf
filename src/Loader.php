@@ -17,6 +17,9 @@ class Loader implements LoaderInterface
     /// Default file parser class
     public const DEFAULT_FILE_PARSER_CLASS = FileParser::class;
 
+    /// Files to load first
+    public const CONF_FILES = [];
+
     private $fileFinder_; ///< FileFinderInterface
     private $fileParser_; ///< FileParserInterface
 
@@ -61,18 +64,28 @@ class Loader implements LoaderInterface
     /**
      * @brief Load and parse files.
      *
-     * @param $filename iterable|string file names to find and to load
+     * @param $filename array|string|null file names to find and to load.
      *
-     * Each file is parsed into an array. The arrays are merged such that
-     * files later in the list take precedence over files earlier in the list.
+     * The list of files to load is constructed from
+     * alcamo::conf::Loader::CONF_FILES (which may be empty) and $filenames
+     * (which may be the name of a file, a possibly empty array of filenames,
+     * or `null`) using the `+` operator.
+     *
+     * @attention This implies that numerically-indexed items in
+     * alcamo::conf::Loader::CONF_FILES may be overriden by
+     * numerically-indexed items in $filenames, which is not desired on most
+     * cases. A good pratice is to use string keys in the former and numerical
+     * indexes in the latter.
+     *
+     * Each file is found once and parsed into an array. The arrays are then
+     * merged such that files later in the list take precedence over files
+     * earlier in the list.
      */
-    public function load($filenames): array
+    public function load($filenames = null): array
     {
         $result = [];
 
-        if (!is_iterable($filenames)) {
-            $filenames = (array)$filenames;
-        }
+        $filenames = static::CONF_FILES + (array)$filenames;
 
         foreach ($filenames as $filename) {
             $pathname = $this->fileFinder_->find($filename);

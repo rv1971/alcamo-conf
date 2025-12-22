@@ -3,11 +3,15 @@
 ~~~
 use alcamo\conf\{Loader, XdgFileFinder}
 
-$conf = (new Loader(new XdgFileFinder('foo')))->Load('conf.ini');
+$conf = (new Loader(new XdgFileFinder('foo')))->Load(
+    [ 'default.ini', 'conf.ini' ]
+);
 ~~~
 
 Now `$conf` contains an array representing the contents of
-`$XDG_CONFIG_HOME/foo/conf.ini` if `$XDG_CONFIG_HOME` is
+`$XDG_CONFIG_HOME/foo/default.ini` and
+`$XDG_CONFIG_HOME/foo/conf.ini`, where items in the latter replace
+items in the former with the same key, if `$XDG_CONFIG_HOME` is
 set. Otherwise, `foo/conf.ini` is searched as specified in the
 [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
 
@@ -22,13 +26,17 @@ class XdgFileFinder extends XdgFileFinderBase
 class Loader extends LoaderBase
 {
     public const DEFAULT_FILE_PARSER_CLASS = XdgFileFinder::class;
+
+    public const CONF_FILES = [ 'default.ini' ];
 }
 
 $conf = (new Loader())->Load('conf.ini');
 ~~~
 
-This has the same effect and may be more useful if configurations are
-loaded from the same subdirectory in many places in the code.
+This has exactly the same effect and may be more useful if
+configurations are loaded from the same subdirectory in many places in
+the code, in particular when there is a common basic configuration
+files plus specific configuration files.
 
 ~~~
 use alcamo\conf\{Loader as LoaderBase, XdgFileFinder as XdgFileFinderBase}

@@ -5,6 +5,11 @@ namespace alcamo\conf;
 use PHPUnit\Framework\TestCase;
 use alcamo\exception\FileNotFound;
 
+class MyLoader extends Loader
+{
+    public const CONF_FILES = [ 'bar' => 'bar.ini' ];
+}
+
 class LoaderTest extends TestCase
 {
     public function testLoad()
@@ -35,7 +40,7 @@ class LoaderTest extends TestCase
 
         putenv("XDG_DATA_HOME=$dataHome");
 
-        $loader = new Loader(
+        $loader = new MyLoader(
             new XdgFileFinder('alcamo/subdir', 'DATA'),
             new IniFileParser(null, INI_SCANNER_NORMAL)
         );
@@ -43,7 +48,8 @@ class LoaderTest extends TestCase
         $this->assertSame(
             [
                 'baz' => '43',
-                'qux' => 'QUX'
+                'qux' => 'QUX',
+                'corge' => '1'
             ],
             $loader->load('baz.ini')
         );
