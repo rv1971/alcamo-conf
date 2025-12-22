@@ -6,7 +6,7 @@ use XdgBaseDir\Xdg;
 use alcamo\exception\InvalidEnumerator;
 
 /**
- * @brief Find a file as explained by the XDG Base Directory Specification.
+ * @brief Find a file as explained by the XDG Base Directory Specification
  *
  * @sa [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
  */
@@ -15,8 +15,8 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
     /**
      * @brief Default subdirectory
      *
-     * Subdirectory within `$XDG_CONFIG_HOME` or `$XDG_DATA_HOME` or
-     * `$XDG_STATE_HOME`
+     * Subdirectory within `$XDG_CONFIG_HOME`, `$XDG_DATA_HOME`,
+     * `$XDG_STATE_HOME` or `$XDG_CACHE_HOME`
      */
     public const SUBDIR = 'alcamo';
 
@@ -25,10 +25,12 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
     private $dirs_;   ///< array
 
     /**
-     * @param $subdir subdirectory within `$XDG_CONFIG_HOME` or
-     * `$XDG_DATA_HOME`, defaults to @ref SUBDIR.
+     * @param $subdir subdirectory within `$XDG_CONFIG_HOME`,
+     * `$XDG_DATA_HOME`, `$XDG_STATE_HOME` or `$XDG_CACHE_HOME`, defaults
+     * to @ref alcamo::conf::XdgFileFinder::SUBDIR.
      *
-     * @param string $type `CONFIG` or `DATA` or `STATE`, defaults to `CONFIG`
+     * @param string $type `CONFIG`, `DATA`, `STATE` or `CACHE`, defaults to
+     * `CONFIG`
      */
     public function __construct(?string $subdir = null, ?string $type = null)
     {
@@ -49,18 +51,24 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
                 $this->dirs_ = [ $this->getHomeStateDir() ];
                 break;
 
+            case 'CACHE':
+                $this->dirs_ = [ $this->getHomeCacheDir() ];
+                break;
+
             default:
                 /** @throw alcamo::exception::InvalidEnumerator if `$type` is
                  *  invalid. */
                 throw (new InvalidEnumerator())->setMessageContext(
                     [
                         'value' => $type,
-                        'expectedOneOf' => [ 'CONFIG', 'DATA' ]
+                        'expectedOneOf' =>
+                            [ 'CONFIG', 'DATA', 'STATE', 'CACHE' ]
                     ]
                 );
         }
     }
 
+    /// Get $XDG_STATE_HOME
     public function getHomeStateDir(): string
     {
         return getenv('XDG_STATE_HOME') ?:
@@ -68,19 +76,29 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
             . DIRECTORY_SEPARATOR . 'state';
     }
 
-    /// Get subdirectory within `$XDG_CONFIG_HOME` or `$XDG_DATA_HOME`
+    /// Get $XDG_CACHE_HOME
+    public function getHomeCacheDir(): string
+    {
+        return getenv('XDG_CACHE_HOME') ?:
+            $this->getHomeDir() . DIRECTORY_SEPARATOR . '.cache';
+    }
+
+    /**
+     * @brief Get subdirectory within $XDG_CONFIG_HOME, $XDG_DATA_HOME,
+     * $XDG_STATE_HOME or $XDG_CACHE_HOME
+     */
     public function getSubdir(): string
     {
         return $this->subdir_;
     }
 
-    /// Get type, either `CONFIG` or `DATA`
+    /// Get type, either CONFIG, DATA, STATE or CACHE
     public function getType(): string
     {
         return $this->type_;
     }
 
-    /// Get `$XDG_CONFIG_DIRS`/subdir or `$XDG_DATA_DIRS`/subdir
+    /// Get $XDG_CONFIG_DIRS, $XDG_DATA_DIRS, $XDG_STATE_HOME or $XDG_CACHE_HOME
     public function getDirs(): array
     {
         return $this->dirs_;
@@ -97,7 +115,8 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
     /**
      * @copybrief FileFinderInterface::find()
      *
-     * Find a file by searching through the directories returned by getDirs().
+     * Find a file by searching through the subdirectories returned by
+     * getSubdir() in the directories returned by getDirs().
      */
     public function find(string $filename): ?string
     {
@@ -106,9 +125,10 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
             $pathname = $directory . DIRECTORY_SEPARATOR . $filename;
 
             switch ($this->type_) {
-                /** If a state file does not exist, create the directory if
-                 *  necessary and return the file name. */
+                /** If a *state* or *cache* directory does not exist, create
+                 *  it and return the file name. */
                 case 'STATE':
+                case 'CACHE':
                     if (!is_dir($directory)) {
                         /* If this fails, it will trigger an error which must
                          * be handled appropriately by the caller. */

@@ -65,6 +65,14 @@ class XdgFileFinderTest extends TestCase
 
     public function testState(): void
     {
+        $finder = new XdgFileFinder(null, 'STATE');
+
+        $this->assertSame(
+            $finder->getHomeDir() . DIRECTORY_SEPARATOR . '.local'
+                . DIRECTORY_SEPARATOR . 'state',
+            $finder->getHomeStateDir()
+        );
+
         $stateHome = __DIR__;
         $subdir = 'foo';
         $stateDir = $stateHome . DIRECTORY_SEPARATOR . $subdir;
@@ -90,11 +98,46 @@ class XdgFileFinderTest extends TestCase
         rmdir($stateDir);
     }
 
+    public function testCache(): void
+    {
+        $finder = new XdgFileFinder(null, 'CACHE');
+
+        $this->assertSame(
+            $finder->getHomeDir() . DIRECTORY_SEPARATOR . '.cache',
+            $finder->getHomeCacheDir()
+        );
+
+        $cacheHome = __DIR__;
+        $subdir = 'foo';
+        $cacheDir = $cacheHome . DIRECTORY_SEPARATOR . $subdir;
+        $filename = 'bar.json';
+
+        if (is_dir($cacheDir)) {
+            rmdir($cacheDir);
+        }
+
+        putenv("XDG_CACHE_HOME=$cacheHome");
+
+        $finder = new XdgFileFinder($subdir, 'CACHE');
+
+        $pathname = $finder->find($filename);
+
+        $this->assertSame(
+            $cacheDir . DIRECTORY_SEPARATOR . $filename,
+            $pathname
+        );
+
+        $this->assertTrue(is_dir($cacheDir));
+
+        rmdir($cacheDir);
+    }
+
     public function testException(): void
     {
         $this->expectException(InvalidEnumerator::class);
         $this->expectExceptionMessage(
-            'Invalid value "FOO", expected one of ["CONFIG", "DATA"]'
+            'Invalid value "FOO", expected one of '
+                . '["CONFIG", "DATA", "STATE", "CACHE"]'
         );
 
         new XdgFileFinder(null, 'FOO');
