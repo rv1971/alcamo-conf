@@ -9,6 +9,8 @@ use alcamo\exception\InvalidEnumerator;
  * @brief Find a file as explained by the XDG Base Directory Specification
  *
  * @sa [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
+ *
+ * @date Last reviewed 2025-12-22
  */
 class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
 {
@@ -16,9 +18,12 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
      * @brief Default subdirectory
      *
      * Subdirectory within `$XDG_CONFIG_HOME`, `$XDG_DATA_HOME`,
-     * `$XDG_STATE_HOME` or `$XDG_CACHE_HOME`
+     * `$XDG_STATE_HOME`, `$XDG_CACHE_HOME` or `$XDG_RUNTIME_DIR`
      */
     public const SUBDIR = 'alcamo';
+
+    /// Default mode for directories to create
+    public const DEFAULT_DIR_MODE = 0777;
 
     private $subdir_; ///< string
     private $type_;   ///< string
@@ -26,11 +31,12 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
 
     /**
      * @param $subdir subdirectory within `$XDG_CONFIG_HOME`,
-     * `$XDG_DATA_HOME`, `$XDG_STATE_HOME` or `$XDG_CACHE_HOME`, defaults
-     * to @ref alcamo::conf::XdgFileFinder::SUBDIR.
+     * `$XDG_DATA_HOME`, `$XDG_STATE_HOME`, `$XDG_CACHE_HOME` or
+     * `$XDG_RUNTIME_DIR`, defaults to @ref
+     * alcamo::conf::XdgFileFinder::SUBDIR.
      *
-     * @param string $type `CONFIG`, `DATA`, `STATE` or `CACHE`, defaults to
-     * `CONFIG`
+     * @param string $type `CONFIG`, `DATA`, `STATE`, `CACHE` or `RUNTIME`,
+     * defaults to `CONFIG`
      */
     public function __construct(?string $subdir = null, ?string $type = null)
     {
@@ -55,6 +61,10 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
                 $this->dirs_ = [ $this->getHomeCacheDir() ];
                 break;
 
+            case 'RUNTIME':
+                $this->dirs_ = [ $this->getRuntimeDir() ];
+                break;
+
             default:
                 /** @throw alcamo::exception::InvalidEnumerator if `$type` is
                  *  invalid. */
@@ -62,7 +72,7 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
                     [
                         'value' => $type,
                         'expectedOneOf' =>
-                            [ 'CONFIG', 'DATA', 'STATE', 'CACHE' ]
+                            [ 'CONFIG', 'DATA', 'STATE', 'CACHE', 'RUNTIME' ]
                     ]
                 );
         }
@@ -76,29 +86,25 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
             . DIRECTORY_SEPARATOR . 'state';
     }
 
-    /// Get $XDG_CACHE_HOME
-    public function getHomeCacheDir(): string
-    {
-        return getenv('XDG_CACHE_HOME') ?:
-            $this->getHomeDir() . DIRECTORY_SEPARATOR . '.cache';
-    }
-
     /**
      * @brief Get subdirectory within $XDG_CONFIG_HOME, $XDG_DATA_HOME,
-     * $XDG_STATE_HOME or $XDG_CACHE_HOME
+     * $XDG_STATE_HOME, $XDG_CACHE_HOME or $XDG_RUNTIME_DIR
      */
     public function getSubdir(): string
     {
         return $this->subdir_;
     }
 
-    /// Get type, either CONFIG, DATA, STATE or CACHE
+    /// Get type, either CONFIG, DATA, STATE, CACHE or RUNTIME
     public function getType(): string
     {
         return $this->type_;
     }
 
-    /// Get $XDG_CONFIG_DIRS, $XDG_DATA_DIRS, $XDG_STATE_HOME or $XDG_CACHE_HOME
+    /**
+     * @brief Get $XDG_CONFIG_DIRS, $XDG_DATA_DIRS, $XDG_STATE_HOME,
+     * $XDG_CACHE_HOME or $XDG_RUNTIME_DIR
+     */
     public function getDirs(): array
     {
         return $this->dirs_;
@@ -125,14 +131,23 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
             $pathname = $directory . DIRECTORY_SEPARATOR . $filename;
 
             switch ($this->type_) {
-                /** If a *state* or *cache* directory does not exist, create
-                 *  it and return the file name. */
+                /** If a *state*, *cache* or *runtime* directory does not
+                 *  exist, create it and return the file name. */
                 case 'STATE':
                 case 'CACHE':
                     if (!is_dir($directory)) {
                         /* If this fails, it will trigger an error which must
                          * be handled appropriately by the caller. */
-                        mkdir($directory, 0777, true);
+                        mkdir($directory, static::DEFAULT_DIR_MODE, true);
+                    }
+
+                    return $pathname;
+
+                case 'RUNTIME':
+                    if (!is_dir($directory)) {
+                        /* If this fails, it will trigger an error which must
+                         * be handled appropriately by the caller. */
+                        mkdir($directory, 0700, true);
                     }
 
                     return $pathname;

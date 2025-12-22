@@ -3,9 +3,9 @@
 namespace alcamo\conf;
 
 /**
- * @brief Object implementing a load() to load configuration files
+ * @brief Object implementing a load() method to load configuration files
  *
- * @date Last reviewed 2021-06-15
+ * @date Last reviewed 2025-12-22
  */
 interface LoaderInterface
 {

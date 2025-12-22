@@ -10,7 +10,7 @@ class IniFileParserTest extends TestCase
 {
     public function testSections(): void
     {
-        $parser = new IniFileParser(true);
+        $parser = new IniFileParser(true, INI_SCANNER_NORMAL);
 
         $iniFilename = __DIR__ . DIRECTORY_SEPARATOR .
         'alcamo' . DIRECTORY_SEPARATOR . 'bar.ini';
@@ -20,11 +20,11 @@ class IniFileParserTest extends TestCase
         $this->assertSame(
             [
                 'Foo' => [
-                    'quux' => 45,
+                    'quux' => '45',
                     'corge' => 'foo bar baz'
                 ],
                 'Bar' => [
-                    'bar' => 46
+                    'bar' => '46'
                 ]
             ],
             $iniData

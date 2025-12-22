@@ -7,11 +7,11 @@ use alcamo\exception\FileNotFound;
 /**
  * @brief Parser for JSON files
  *
- * @date Last reviewed 2021-06-15
+ * @date Last reviewed 2025-12-22
  */
 class JsonFileParser implements FileParserInterface
 {
-    /// @copybrief FileParserInterface::parse()
+    /// @copybrief alcamo::conf::FileParserInterface::parse()
     public function parse(string $filename): array
     {
         try {

@@ -11,7 +11,7 @@ namespace alcamo\conf;
 /**
  * @brief Object implementing a find() method to find a file by its name
  *
- * @date Last reviewed 2021-06-15
+ * @date Last reviewed 2025-12-22
  */
 interface FileFinderInterface
 {

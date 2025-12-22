@@ -6,11 +6,19 @@ use alcamo\exception\FileNotFound;
 
 /**
  * @brief Configuration file loader based on a file finder and a file parser
+ *
+ * @date Last reviewed 2025-12-22
  */
 class Loader implements LoaderInterface
 {
-    private $fileParser_; ///< FileParserInterface
+    /// Default file finder class
+    public const DEFAULT_FILE_FINDER_CLASS = XdgFileFinder::class;
+
+    /// Default file parser class
+    public const DEFAULT_FILE_PARSER_CLASS = FileParser::class;
+
     private $fileFinder_; ///< FileFinderInterface
+    private $fileParser_; ///< FileParserInterface
 
     /**
      * @param $fileParser @copybrief getFileParser(), defaults to a new
@@ -20,23 +28,34 @@ class Loader implements LoaderInterface
      * XdgFileFinder instance.
      */
     public function __construct(
-        ?FileParserInterface $fileParser = null,
-        ?FileFinderInterface $fileFinder = null
+        ?FileFinderInterface $fileFinder = null,
+        ?FileParserInterface $fileParser = null
     ) {
-        $this->fileParser_ = $fileParser ?? new FileParser();
-        $this->fileFinder_ = $fileFinder ?? new XdgFileFinder();
-    }
+        if (isset($fileFinder)) {
+            $this->fileFinder_ = $fileFinder;
+        } else {
+            $class = static::DEFAULT_FILE_FINDER_CLASS;
+            $this->fileFinder_ = new $class();
+        }
 
-    /// Object used to parse a configuration file
-    public function getFileParser(): FileParserInterface
-    {
-        return $this->fileParser_;
+        if (isset($fileParser)) {
+            $this->fileParser_ = $fileParser;
+        } else {
+            $class = static::DEFAULT_FILE_PARSER_CLASS;
+            $this->fileParser_ = new $class();
+        }
     }
 
     /// Object used to find a configuration file
     public function getFileFinder(): FileFinderInterface
     {
         return $this->fileFinder_;
+    }
+
+    /// Object used to parse a configuration file
+    public function getFileParser(): FileParserInterface
+    {
+        return $this->fileParser_;
     }
 
     /**

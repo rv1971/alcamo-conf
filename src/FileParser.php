@@ -6,14 +6,18 @@ use alcamo\exception\InvalidEnumerator;
 
 /**
  * @brief Parser for INI or JSON files
+ *
+ * @date Last reviewed 2025-12-22
  */
 class FileParser implements FileParserInterface
 {
+    /// Mapping of file extension to parser class
     public const EXT_TO_PARSER_CLASS = [
         'ini'  => IniFileParser::class,
         'json' => JsonFileParser::class
     ];
 
+    /// Create an appropriate parser object
     public function createParser(string $filename): FileParserInterface
     {
         $extension = pathinfo($filename, PATHINFO_EXTENSION);
@@ -40,7 +44,7 @@ class FileParser implements FileParserInterface
     }
 
     /**
-     * @copybrief FileParserInterface::parse()
+     * @copybrief alcamo::conf::FileParserInterface::parse()
      *
      * Use a parser object depending on the file suffix.
      */

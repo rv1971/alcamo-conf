@@ -132,12 +132,39 @@ class XdgFileFinderTest extends TestCase
         rmdir($cacheDir);
     }
 
-    public function testException(): void
+    public function testRuntime(): void
+    {
+        $runtimeBase = __DIR__;
+        $subdir = 'foo';
+        $runtimeDir = $runtimeBase . DIRECTORY_SEPARATOR . $subdir;
+        $filename = 'bar.pipe';
+
+        if (is_dir($runtimeDir)) {
+            rmdir($runtimeDir);
+        }
+
+        putenv("XDG_RUNTIME_DIR=$runtimeBase");
+
+        $finder = new XdgFileFinder($subdir, 'RUNTIME');
+
+        $pathname = $finder->find($filename);
+
+        $this->assertSame(
+            $runtimeDir . DIRECTORY_SEPARATOR . $filename,
+            $pathname
+        );
+
+        $this->assertTrue(is_dir($runtimeDir));
+
+        rmdir($runtimeDir);
+    }
+
+    public function testConstructException(): void
     {
         $this->expectException(InvalidEnumerator::class);
         $this->expectExceptionMessage(
             'Invalid value "FOO", expected one of '
-                . '["CONFIG", "DATA", "STATE", "CACHE"]'
+                . '["CONFIG", "DATA", "STATE", "CACHE", '
         );
 
         new XdgFileFinder(null, 'FOO');

@@ -19,13 +19,33 @@ class LoaderTest extends TestCase
 
         $this->assertSame(
             [
-            'quux' => 45,
-            'corge' => 'foo bar baz',
-            'bar' => 46,
-            'baz' => 'Stet clita kasd gubergren',
-            'qux' => true
+                'quux' => 45,
+                'corge' => 'foo bar baz',
+                'bar' => 46,
+                'baz' => 'Stet clita kasd gubergren',
+                'qux' => true
             ],
             $data1
+        );
+    }
+
+    public function testCustom()
+    {
+        $dataHome = __DIR__;
+
+        putenv("XDG_DATA_HOME=$dataHome");
+
+        $loader = new Loader(
+            new XdgFileFinder('alcamo/subdir', 'DATA'),
+            new IniFileParser(null, INI_SCANNER_NORMAL)
+        );
+
+        $this->assertSame(
+            [
+                'baz' => '43',
+                'qux' => 'QUX'
+            ],
+            $loader->load('baz.ini')
         );
     }
 
