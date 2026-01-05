@@ -46,7 +46,7 @@ class IniFileParser implements FileParserInterface
      * [parse_ini_file()](https://www.php.net/manual/en/function.parse-ini-file)
      * to parse the file.
      */
-    public function parse(string $filename): array
+    public function parse(string $filename)
     {
         try {
             return parse_ini_file(

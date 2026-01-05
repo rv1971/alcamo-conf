@@ -2,7 +2,7 @@
 
 namespace alcamo\conf;
 
-use alcamo\exception\FileNotFound;
+use alcamo\exception\{DataValidationFailed, FileNotFound};
 
 /**
  * @brief Parser for JSON files
@@ -12,7 +12,7 @@ use alcamo\exception\FileNotFound;
 class JsonFileParser implements FileParserInterface
 {
     /// @copybrief alcamo::conf::FileParserInterface::parse()
-    public function parse(string $filename): array
+    public function parse(string $filename)
     {
         try {
             $contents = file_get_contents($filename);
@@ -23,6 +23,18 @@ class JsonFileParser implements FileParserInterface
                 ->setMessageContext([ 'filename' => $filename ]);
         }
 
-        return json_decode($contents, true);
+        $json = json_decode($contents, true);
+
+        if (!isset($json)) {
+            throw (new DataValidationFailed())
+                ->setMessageContext(
+                    [
+                        'filename' => $filename,
+                        'extraMessage' => 'no valid JSON data'
+                    ]
+                );
+        }
+
+        return $json;
     }
 }

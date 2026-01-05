@@ -9,6 +9,6 @@ namespace alcamo\conf;
  */
 interface FileParserInterface
 {
-    /// Parse a configuration file and return an associative array
-    public function parse(string $filename): array;
+    /// Parse a configuration file
+    public function parse(string $filename);
 }
