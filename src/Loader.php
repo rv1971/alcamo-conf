@@ -77,13 +77,15 @@ class Loader implements LoaderInterface
      * cases. A good pratice is to use string keys in the former and numerical
      * indexes in the latter.
      *
-     * Each file is found once and parsed into an array. The arrays are then
-     * merged such that files later in the list take precedence over files
-     * earlier in the list.
+     * Each file is found once and parsed. If there is more than one file, the
+     * parsing results are merged using the `+` operator, such that files
+     * later in the list take precedence over files earlier in the list. This
+     * implies that more than one file is supported only if the parsing result
+     * is an array.
      */
-    public function load($filenames = null): array
+    public function load($filenames = null)
     {
-        $result = [];
+        $result = null;
 
         $filenames = static::CONF_FILES + (array)$filenames;
 
@@ -101,7 +103,11 @@ class Loader implements LoaderInterface
                 );
             }
 
-            $result = $this->fileParser_->parse($pathname) + $result;
+            if (isset($result)) {
+                $result = $this->fileParser_->parse($pathname) + $result;
+            } else {
+                $result = $this->fileParser_->parse($pathname);
+            }
         }
 
         return $result;

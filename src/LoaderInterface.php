@@ -9,6 +9,6 @@ namespace alcamo\conf;
  */
 interface LoaderInterface
 {
-    /// Load and merge configuration files and return an associative array
-    public function load($filenames): array;
+    /// Load configuration files and return the parsing result
+    public function load($filenames);
 }
