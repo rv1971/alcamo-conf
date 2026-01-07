@@ -110,6 +110,34 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
         return $this->dirs_;
     }
 
+    /// Get default directory including subdirectory
+    public function getDefaultDir(): string
+    {
+        switch ($this->type_) {
+            case 'CONFIG':
+                $dir = $this->getHomeConfigDir();
+                break;
+
+            case 'DATA':
+                $dir = $this->getHomeDataDir();
+                break;
+
+            case 'STATE':
+                $dir = $this->getHomeStateDir();
+                break;
+
+            case 'CACHE':
+                $dir = $this->getHomeCacheDir();
+                break;
+
+            case 'RUNTIME':
+                $dir = $this->getRuntimeDir();
+                break;
+        }
+
+        return $dir . DIRECTORY_SEPARATOR . $this->subdir_;
+    }
+
     /**
      * @brief Return colon-separated list of result of getDirs()
      */

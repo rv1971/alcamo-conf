@@ -14,13 +14,26 @@ class XdgFileFinderTest extends TestCase
         $subdir,
         $type,
         $filename,
+        $expectedDefaultDir,
         $expectedPathname
     ): void {
+        $configHome = __DIR__;
+        $dataHome = __DIR__ . DIRECTORY_SEPARATOR . 'foo';
+        $dataHome1 = __DIR__;
+        $dataHome2 = dirname($configHome);
+
+        putenv("XDG_CONFIG_HOME=$configHome");
+        putenv("XDG_CONFIG_DIRS=$dataHome2");
+        putenv("XDG_DATA_HOME=$dataHome");
+        putenv("XDG_DATA_DIRS=$dataHome1:$dataHome2");
+
         $finder = new XdgFileFinder($subdir, $type);
 
         $this->assertSame($subdir ?? 'alcamo', $finder->getSubdir());
 
         $this->assertSame($type ?? 'CONFIG', $finder->getType());
+
+        $this->assertSame($expectedDefaultDir, $finder->getDefaultDir());
 
         $pathname = $finder->find($filename);
 
@@ -30,10 +43,13 @@ class XdgFileFinderTest extends TestCase
     public function basicsProvider(): array
     {
         $configHome = __DIR__;
+        $dataHome = __DIR__ . DIRECTORY_SEPARATOR . 'foo';
         $dataHome1 = __DIR__;
         $dataHome2 = dirname($configHome);
 
         putenv("XDG_CONFIG_HOME=$configHome");
+        putenv("XDG_CONFIG_DIRS=$dataHome2");
+        putenv("XDG_DATA_HOME=$dataHome");
         putenv("XDG_DATA_DIRS=$dataHome1:$dataHome2");
 
         return [
@@ -41,6 +57,7 @@ class XdgFileFinderTest extends TestCase
                 null,
                 null,
                 'foo.json',
+                $configHome . DIRECTORY_SEPARATOR . 'alcamo',
                 $configHome . DIRECTORY_SEPARATOR
                 . 'alcamo' . DIRECTORY_SEPARATOR . 'foo.json'
             ],
@@ -49,6 +66,7 @@ class XdgFileFinderTest extends TestCase
                 'vendor',
                 null,
                 'autoload.php',
+                $configHome . DIRECTORY_SEPARATOR . 'vendor',
                 dirname(__DIR__) . DIRECTORY_SEPARATOR . 'vendor'
                 . DIRECTORY_SEPARATOR . 'autoload.php'
             ],
@@ -57,6 +75,7 @@ class XdgFileFinderTest extends TestCase
                 'src',
                 'DATA',
                 'XdgFileFinder.php',
+                $dataHome . DIRECTORY_SEPARATOR . 'src',
                 $dataHome2 . DIRECTORY_SEPARATOR
                 . 'src' . DIRECTORY_SEPARATOR . 'XdgFileFinder.php'
             ]
@@ -85,6 +104,8 @@ class XdgFileFinderTest extends TestCase
         putenv("XDG_STATE_HOME=$stateHome");
 
         $finder = new XdgFileFinder($subdir, 'STATE');
+
+        $this->assertSame($stateDir, $finder->getDefaultDir());
 
         $pathname = $finder->find($filename);
 
@@ -120,6 +141,8 @@ class XdgFileFinderTest extends TestCase
 
         $finder = new XdgFileFinder($subdir, 'CACHE');
 
+        $this->assertSame($cacheDir, $finder->getDefaultDir());
+
         $pathname = $finder->find($filename);
 
         $this->assertSame(
@@ -146,6 +169,8 @@ class XdgFileFinderTest extends TestCase
         putenv("XDG_RUNTIME_DIR=$runtimeBase");
 
         $finder = new XdgFileFinder($subdir, 'RUNTIME');
+
+        $this->assertSame($runtimeDir, $finder->getDefaultDir());
 
         $pathname = $finder->find($filename);
 
