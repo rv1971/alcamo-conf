@@ -9,5 +9,5 @@ namespace alcamo\conf;
  */
 interface HavingConfInterface
 {
-    public function getConf(): array;
+    public function getConf();
 }

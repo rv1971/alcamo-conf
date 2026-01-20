@@ -11,7 +11,7 @@ trait HavingConfTrait
 {
     private $conf_; ///< array
 
-    public function getConf(): array
+    public function getConf()
     {
         return $this->conf_;
     }
