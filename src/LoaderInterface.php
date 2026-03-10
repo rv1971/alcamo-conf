@@ -9,6 +9,16 @@ namespace alcamo\conf;
  */
 interface LoaderInterface
 {
-    /// Load configuration files and return the parsing result
-    public function load($filenames);
+    /// Flag for use in FileFinderInterface::find
+    public const CONFIDENTIAL = 1;
+
+    /**
+     * @brief Load configuration files and return the parsing result
+     *
+     * @param $filename Filename without directory.
+     *
+     * @param $flags If $flags & alcamo::conf::LoaderInterface::CONFIDENTIAL,
+     * ensure that only the user can access the file that is found.
+     */
+    public function load($filenames, ?int $flags = null);
 }

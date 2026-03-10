@@ -15,8 +15,15 @@ namespace alcamo\conf;
  */
 interface FileFinderInterface
 {
-    /// Find a file by its name
-    public function find(string $filename): ?string;
+    /**
+     * @brief Find a file by its name
+     *
+     * @param $filename Filename without directory.
+     *
+     * @param $flags If $flags & alcamo::conf::LoaderInterface::CONFIDENTIAL,
+     * ensure that only the user can access the file that is found.
+     */
+    public function find(string $filename, ?int $flags = null): ?string;
 
     /// Serialize this object, mainly for debugging
     public function __toString(): string;

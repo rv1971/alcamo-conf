@@ -3,7 +3,7 @@
 namespace alcamo\conf;
 
 use XdgBaseDir\Xdg;
-use alcamo\exception\InvalidEnumerator;
+use alcamo\exception\{InvalidEnumerator, SecurityViolation};
 
 /**
  * @brief Find a file as explained by the XDG Base Directory Specification
@@ -147,16 +147,18 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
     }
 
     /**
-     * @copybrief FileFinderInterface::find()
+     * @copydoc alcamo::conf::FileFinderInterface::find()
      *
      * Find a file by searching through the subdirectories returned by
      * getSubdir() in the directories returned by getDirs().
      */
-    public function find(string $filename): ?string
+    public function find(string $filename, ?int $flags = null): ?string
     {
         foreach ($this->dirs_ as $dir) {
             $directory = $dir . DIRECTORY_SEPARATOR . $this->subdir_;
             $pathname = $directory . DIRECTORY_SEPARATOR . $filename;
+
+            $isFound = false;
 
             switch ($this->type_) {
                 /** If a *state*, *cache* or *runtime* directory does not
@@ -166,10 +168,27 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
                     if (!is_dir($directory)) {
                         /* If this fails, it will trigger an error which must
                          * be handled appropriately by the caller. */
-                        mkdir($directory, static::DEFAULT_DIR_MODE, true);
+                        mkdir(
+                            $directory,
+                            $flags & LoaderInterface::CONFIDENTIAL
+                                ? 0700
+                                : static::DEFAULT_DIR_MODE,
+                            true
+                        );
                     }
 
-                    return $pathname;
+                    if (!file_exists($pathname)) {
+                        touch($pathname);
+
+                        if ($flags & LoaderInterface::CONFIDENTIAL) {
+                            chmod($pathname, 0700);
+                        }
+
+                        return $pathname;
+                    }
+
+                    $isFound = true;
+                    break 2;
 
                 case 'RUNTIME':
                     if (!is_dir($directory)) {
@@ -178,15 +197,54 @@ class XdgFileFinder extends \XdgBaseDir\Xdg implements FileFinderInterface
                         mkdir($directory, 0700, true);
                     }
 
-                    return $pathname;
+                    if (!file_exists($pathname)) {
+                        touch($pathname);
+                        chmod($pathname, 0700);
+
+                        return $pathname;
+                    }
+
+                    $isFound = true;
+                    break 2;
 
                 default:
                     if (is_readable($pathname)) {
-                        return $pathname;
+                        $isFound = true;
+                        break 2;
                     }
             }
         }
 
-        return null;
+        if (!$isFound) {
+            return null;
+        }
+
+        if ($flags & LoaderInterface::CONFIDENTIAL) {
+            /** @throw alcamo::exception::SecurityViolation if $flags contain
+             *  alcamo::conf::LoaderInterface::CONFIDENTIAL and the
+             *  configuration file found or its directory has any permissions
+             *  for non-owners. */
+            if (fileperms($pathname) & 0x3f) {
+                throw (new SecurityViolation())
+                    ->setMessageContext(
+                        [
+                            'extraMessage' =>
+                                "Permissions of $pathname too open"
+                        ]
+                    );
+            }
+
+            if (fileperms(dirname($pathname)) & 0x3f) {
+                throw (new SecurityViolation())
+                    ->setMessageContext(
+                        [
+                            'extraMessage' => 'Permissions of '
+                                . dirname($pathname) . ' too open'
+                        ]
+                    );
+            }
+        }
+
+        return $pathname;
     }
 }

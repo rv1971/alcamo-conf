@@ -3,7 +3,7 @@
 namespace alcamo\conf;
 
 use PHPUnit\Framework\TestCase;
-use alcamo\exception\FileNotFound;
+use alcamo\exception\{FileNotFound, SecurityViolation};
 
 class MyLoader extends Loader
 {
@@ -70,5 +70,24 @@ class LoaderTest extends TestCase
         $loader = new Loader();
 
         $loader->load('foo.ini');
+    }
+
+    public function testSecurityViolationException(): void
+    {
+        $configHome = __DIR__;
+
+        putenv("XDG_CONFIG_HOME=$configHome");
+
+        $alcamoPath = $configHome . DIRECTORY_SEPARATOR . 'alcamo';
+
+        $quxPath = $alcamoPath . DIRECTORY_SEPARATOR . 'qux.ini';
+
+        chmod($alcamoPath, 0710);
+        chmod($quxPath, 0700);
+
+        $this->expectException(SecurityViolation::class);
+        $this->expectExceptionMessage('Security Violation; Permissions of');
+
+        (new Loader())->load('qux.ini', LoaderInterface::CONFIDENTIAL);
     }
 }

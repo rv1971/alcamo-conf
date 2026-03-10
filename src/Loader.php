@@ -62,9 +62,12 @@ class Loader implements LoaderInterface
     }
 
     /**
-     * @brief Load and parse files.
+     * @copybrief alcamo::conf::LoaderInterface::load()
      *
      * @param $filename array|string|null file names to find and to load.
+     *
+     * @param $flags If $flags & alcamo::conf::LoaderInterface::CONFIDENTIAL,
+     * ensure that only the user can access the file that is found.
      *
      * The list of files to load is constructed from
      * alcamo::conf::Loader::CONF_FILES (which may be empty) and $filenames
@@ -83,14 +86,14 @@ class Loader implements LoaderInterface
      * implies that more than one file is supported only if the parsing result
      * is an array.
      */
-    public function load($filenames = null)
+    public function load($filenames = null, ?int $flags = null)
     {
         $result = null;
 
         $filenames = static::CONF_FILES + (array)$filenames;
 
         foreach ($filenames as $filename) {
-            $pathname = $this->fileFinder_->find($filename);
+            $pathname = $this->fileFinder_->find($filename, $flags);
 
             if (!isset($pathname)) {
                 /** @throw alcamo::exception::FileNotFound if the file finder

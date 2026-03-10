@@ -3,7 +3,7 @@
 namespace alcamo\conf;
 
 use PHPUnit\Framework\TestCase;
-use alcamo\exception\InvalidEnumerator;
+use alcamo\exception\{InvalidEnumerator, SecurityViolation};
 
 class XdgFileFinderTest extends TestCase
 {
@@ -98,6 +98,10 @@ class XdgFileFinderTest extends TestCase
         $filename = 'bar.json';
 
         if (is_dir($stateDir)) {
+            if (file_exists($stateDir . DIRECTORY_SEPARATOR . $filename)) {
+                unlink($stateDir . DIRECTORY_SEPARATOR . $filename);
+            }
+
             rmdir($stateDir);
         }
 
@@ -115,7 +119,9 @@ class XdgFileFinderTest extends TestCase
         );
 
         $this->assertTrue(is_dir($stateDir));
+        $this->assertTrue(file_exists($pathname));
 
+        unlink($pathname);
         rmdir($stateDir);
     }
 
@@ -134,6 +140,10 @@ class XdgFileFinderTest extends TestCase
         $filename = 'bar.json';
 
         if (is_dir($cacheDir)) {
+            if (file_exists($cacheDir . DIRECTORY_SEPARATOR . $filename)) {
+                unlink($cacheDir . DIRECTORY_SEPARATOR . $filename);
+            }
+
             rmdir($cacheDir);
         }
 
@@ -143,7 +153,7 @@ class XdgFileFinderTest extends TestCase
 
         $this->assertSame($cacheDir, $finder->getDefaultDir());
 
-        $pathname = $finder->find($filename);
+        $pathname = $finder->find($filename, LoaderInterface::CONFIDENTIAL);
 
         $this->assertSame(
             $cacheDir . DIRECTORY_SEPARATOR . $filename,
@@ -151,7 +161,11 @@ class XdgFileFinderTest extends TestCase
         );
 
         $this->assertTrue(is_dir($cacheDir));
+        $this->assertTrue(file_exists($pathname));
+        $this->assertSame(0, fileperms($cacheDir) & 0x3f);
+        $this->assertSame(0, fileperms($pathname) & 0x3f);
 
+        unlink($pathname);
         rmdir($cacheDir);
     }
 
@@ -163,6 +177,10 @@ class XdgFileFinderTest extends TestCase
         $filename = 'bar.pipe';
 
         if (is_dir($runtimeDir)) {
+            if (file_exists($runtimeDir . DIRECTORY_SEPARATOR . $filename)) {
+                unlink($runtimeDir . DIRECTORY_SEPARATOR . $filename);
+            }
+
             rmdir($runtimeDir);
         }
 
@@ -180,7 +198,12 @@ class XdgFileFinderTest extends TestCase
         );
 
         $this->assertTrue(is_dir($runtimeDir));
+        $this->assertTrue(file_exists($pathname));
 
+        $this->assertSame(0, fileperms($runtimeDir) & 0x3f);
+        $this->assertSame(0, fileperms($pathname) & 0x3f);
+
+        unlink($pathname);
         rmdir($runtimeDir);
     }
 
@@ -193,5 +216,52 @@ class XdgFileFinderTest extends TestCase
         );
 
         new XdgFileFinder(null, 'FOO');
+    }
+
+    public function testSecurityViolationException1(): void
+    {
+        $configHome = __DIR__;
+
+        putenv("XDG_CONFIG_HOME=$configHome");
+
+        $alcamoPath = $configHome . DIRECTORY_SEPARATOR . 'alcamo';
+
+        $quxPath = $alcamoPath . DIRECTORY_SEPARATOR . 'qux.ini';
+
+        chmod($alcamoPath, 0700);
+        chmod($quxPath, 0700);
+
+        $finder = new XdgFileFinder();
+
+        $this->assertSame(
+            'qux.ini',
+            basename($finder->find('qux.ini', LoaderInterface::CONFIDENTIAL))
+        );
+
+        chmod($quxPath, 0710);
+
+        $this->expectException(SecurityViolation::class);
+        $this->expectExceptionMessage('Security Violation; Permissions of');
+
+        $finder->find('qux.ini', LoaderInterface::CONFIDENTIAL);
+    }
+
+    public function testSecurityViolationException2(): void
+    {
+        $configHome = __DIR__;
+
+        putenv("XDG_CONFIG_HOME=$configHome");
+
+        $alcamoPath = $configHome . DIRECTORY_SEPARATOR . 'alcamo';
+
+        $quxPath = $alcamoPath . DIRECTORY_SEPARATOR . 'qux.ini';
+
+        chmod($alcamoPath, 0710);
+        chmod($quxPath, 0700);
+
+        $this->expectException(SecurityViolation::class);
+        $this->expectExceptionMessage('Security Violation; Permissions of');
+
+        (new XdgFileFinder())->find('qux.ini', LoaderInterface::CONFIDENTIAL);
     }
 }
