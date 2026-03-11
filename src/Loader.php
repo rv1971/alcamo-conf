@@ -110,7 +110,7 @@ class Loader implements LoaderInterface
             }
 
             if (count($filenames) == 1) {
-                return $this->fileParser_->parse($paths[0], $flags);
+                return $this->fileParser_->parse($path, $flags);
             }
 
             $result = $this->fileParser_
