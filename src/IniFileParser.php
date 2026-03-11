@@ -40,24 +40,32 @@ class IniFileParser implements FileParserInterface
     }
 
     /**
-     * @copybrief alcamo::conf::FileParserInterface::parse()
+     * @copydoc alcamo::conf::FileParserInterface::parse()
      *
      * Use
      * [parse_ini_file()](https://www.php.net/manual/en/function.parse-ini-file)
-     * to parse the file.
+     * to parse the file. The flag LoaderInterface::AS_OBJECT is supported.
      */
-    public function parse(string $filename)
+    public function parse(string $path, ?int $flags = null)
     {
         try {
-            return parse_ini_file(
-                $filename,
+            $data = parse_ini_file(
+                $path,
                 $this->processSections_,
                 $this->iniScannerMode_
             );
+
+            if ($flags & LoaderInterface::AS_OBJECT) {
+                $data = $this->processSections_
+                    ? json_decode(json_encode($data))
+                    : (object)$data;
+            }
+
+            return $data;
         } catch (\Throwable $e) {
             /** @throw alcamo::exception::FileNotFound if parser fails. */
             throw
-                FileNotFound::newFromPrevious($e, [ 'filename' => $filename ]);
+                FileNotFound::newFromPrevious($e, [ 'filename' => $path ]);
         }
     }
 }

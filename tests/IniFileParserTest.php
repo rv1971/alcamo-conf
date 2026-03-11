@@ -29,6 +29,10 @@ class IniFileParserTest extends TestCase
             ],
             $iniData
         );
+
+        $iniData2 = $parser->parse($iniFilename, LoaderInterface::AS_OBJECT);
+
+        $this->assertEquals(json_decode(json_encode($iniData)), $iniData2);
     }
 
     public function testNotFound(): void

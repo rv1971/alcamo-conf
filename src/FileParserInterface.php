@@ -9,6 +9,14 @@ namespace alcamo\conf;
  */
 interface FileParserInterface
 {
-    /// Parse a configuration file
-    public function parse(string $filename);
+    /**
+     * @brief Parse a configuration file and return the result
+     *
+     * @param $path Complete path to the file.
+     *
+     * @param $flags If $flags & alcamo::conf::LoaderInterface::AS_OBJECT,
+     * return the file content as an object rather than an array, if the
+     * parser supports both.
+     */
+    public function parse(string $path, ?int $flags = null);
 }

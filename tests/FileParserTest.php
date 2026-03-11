@@ -14,15 +14,17 @@ class FileParserTest extends TestCase
         $iniFilename = __DIR__ . DIRECTORY_SEPARATOR .
         'alcamo' . DIRECTORY_SEPARATOR . 'bar.ini';
 
-        $iniData = $parser->parse($iniFilename);
-
-        $this->assertSame(
-            [
+        $data = [
             'quux' => 45,
             'corge' => 'foo bar baz',
             'bar' => 46
-            ],
-            $iniData
+        ];
+
+        $this->assertSame($data, $parser->parse($iniFilename));
+
+        $this->assertEquals(
+            (object)$data,
+            $parser->parse($iniFilename, LoaderInterface::AS_OBJECT)
         );
     }
 
@@ -33,15 +35,17 @@ class FileParserTest extends TestCase
         $jsonFileName = __DIR__ . DIRECTORY_SEPARATOR .
         'alcamo' . DIRECTORY_SEPARATOR . 'foo.json';
 
-        $jsonData = $parser->parse($jsonFileName);
-
-        $this->assertSame(
-            [
+        $data = [
             'bar' => 44,
             'baz' => 'Stet clita kasd gubergren',
             'qux' => true
-            ],
-            $jsonData
+        ];
+
+        $this->assertSame($data, $parser->parse($jsonFileName));
+
+        $this->assertEquals(
+            (object)$data,
+            $parser->parse($jsonFileName, LoaderInterface::AS_OBJECT)
         );
     }
 

@@ -9,8 +9,11 @@ namespace alcamo\conf;
  */
 interface LoaderInterface
 {
-    /// Flag for use in FileFinderInterface::find
+    /// Flag for use in FileFinderInterface::find()
     public const CONFIDENTIAL = 1;
+
+    /// Flag for use in FileParserInterface::parse()
+    public const AS_OBJECT = 2;
 
     /**
      * @brief Load configuration files and return the parsing result

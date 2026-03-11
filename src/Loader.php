@@ -81,21 +81,24 @@ class Loader implements LoaderInterface
      * indexes in the latter.
      *
      * Each file is found once and parsed. If there is more than one file, the
-     * parsing results are merged using the `+` operator, such that files
-     * later in the list take precedence over files earlier in the list. This
-     * implies that more than one file is supported only if the parsing result
-     * is an array.
+     * files are parsed without the AS_OBJECT flag, and the parsing results
+     * are merged using the `+` operator, such that files later in the list
+     * take precedence over files earlier in the list. If $flags contain
+     * AS_OBJECT, the result is then converted to an object.
+     *
+     * This implies that more than one file is supported only if the parser
+     * supports providing the result as an array.
      */
     public function load($filenames = null, ?int $flags = null)
     {
-        $result = null;
-
         $filenames = static::CONF_FILES + (array)$filenames;
 
-        foreach ($filenames as $filename) {
-            $pathname = $this->fileFinder_->find($filename, $flags);
+        $result = [];
 
-            if (!isset($pathname)) {
+        foreach ($filenames as $filename) {
+            $path = $this->fileFinder_->find($filename, $flags);
+
+            if (!isset($path)) {
                 /** @throw alcamo::exception::FileNotFound if the file finder
                  *  cannot find a file. */
                 throw (new FileNotFound())->setMessageContext(
@@ -106,13 +109,16 @@ class Loader implements LoaderInterface
                 );
             }
 
-            if (isset($result)) {
-                $result = $this->fileParser_->parse($pathname) + $result;
-            } else {
-                $result = $this->fileParser_->parse($pathname);
+            if (count($filenames) == 1) {
+                return $this->fileParser_->parse($paths[0], $flags);
             }
+
+            $result = $this->fileParser_
+                ->parse($path, $flags & ~LoaderInterface::AS_OBJECT) + $result;
         }
 
-        return $result;
+        return $flags & LoaderInterface::AS_OBJECT
+            ? json_decode(json_encode($result))
+            : $result;
     }
 }

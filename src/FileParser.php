@@ -48,8 +48,8 @@ class FileParser implements FileParserInterface
      *
      * Use a parser object depending on the file suffix.
      */
-    public function parse(string $filename)
+    public function parse(string $path, ?int $flags = null)
     {
-        return $this->createParser($filename)->parse($filename);
+        return $this->createParser($path)->parse($path, $flags);
     }
 }

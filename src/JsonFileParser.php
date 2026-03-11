@@ -11,25 +11,24 @@ use alcamo\exception\{DataValidationFailed, FileNotFound};
  */
 class JsonFileParser implements FileParserInterface
 {
-    /// @copybrief alcamo::conf::FileParserInterface::parse()
-    public function parse(string $filename)
+    public function parse(string $path, ?int $flags = null)
     {
         try {
-            $contents = file_get_contents($filename);
+            $contents = file_get_contents($path);
         } catch (\Throwable $e) {
             /** @throw alcamo::exception::FileNotFound if file cannot be
              *  loaded from storage. */
             throw (new FileNotFound())
-                ->setMessageContext([ 'filename' => $filename ]);
+                ->setMessageContext([ 'filename' => $path ]);
         }
 
-        $json = json_decode($contents, true);
+        $json = json_decode($contents, !($flags & LoaderInterface::AS_OBJECT));
 
         if (!isset($json)) {
             throw (new DataValidationFailed())
                 ->setMessageContext(
                     [
-                        'filename' => $filename,
+                        'filename' => $path,
                         'extraMessage' => 'no valid JSON data'
                     ]
                 );

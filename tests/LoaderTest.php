@@ -20,17 +20,19 @@ class LoaderTest extends TestCase
 
         $loader = new Loader();
 
-        $data1 = $loader->load([ 'foo.json', 'bar.ini' ]);
+        $data = [
+            'quux' => 45,
+            'corge' => 'foo bar baz',
+            'bar' => 46,
+            'baz' => 'Stet clita kasd gubergren',
+            'qux' => true
+        ];
 
-        $this->assertSame(
-            [
-                'quux' => 45,
-                'corge' => 'foo bar baz',
-                'bar' => 46,
-                'baz' => 'Stet clita kasd gubergren',
-                'qux' => true
-            ],
-            $data1
+        $this->assertSame($data, $loader->load([ 'foo.json', 'bar.ini' ]));
+
+        $this->assertEquals(
+            (object)$data,
+            $loader->load([ 'foo.json', 'bar.ini' ], LoaderInterface::AS_OBJECT)
         );
     }
 
